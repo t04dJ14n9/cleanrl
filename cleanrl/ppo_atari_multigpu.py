@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Literal
 
 import gymnasium as gym
+import ale_py  # noqa: F401 - importing after Gymnasium registers legacy Atari IDs
 import numpy as np
 import torch
 import torch.distributed as dist
