@@ -397,8 +397,28 @@ E.g., `torchrun --standalone --nnodes=1 --nproc_per_node=2 ppo_atari_multigpu.py
             print("SPS:", int(global_step / (time.time() - start_time)))
             writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
+    # Report an end-to-end synchronization check for bounded distributed runs.
+    # Identical parameter sums across ranks are not a quality metric, but they
+    # catch missing or inconsistent gradient reductions.
+    with torch.no_grad():
+        parameter_sum = torch.stack([p.double().sum() for p in agent.parameters()]).sum()
+    if args.world_size > 1:
+        gathered_parameter_sums = [torch.zeros_like(parameter_sum) for _ in range(args.world_size)]
+        dist.all_gather(gathered_parameter_sums, parameter_sum)
+        if local_rank == 0:
+            print("final_parameter_sums:", [value.item() for value in gathered_parameter_sums])
+            print(
+                "final_parameter_sum_spread:",
+                (torch.stack(gathered_parameter_sums).max() - torch.stack(gathered_parameter_sums).min()).item(),
+            )
+    else:
+        print("final_parameter_sums:", [parameter_sum.item()])
+        print("final_parameter_sum_spread:", 0.0)
+
     envs.close()
     if local_rank == 0:
         writer.close()
         if args.track:
             wandb.finish()
+    if args.world_size > 1:
+        dist.destroy_process_group()
