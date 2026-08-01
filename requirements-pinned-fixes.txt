@@ -1,0 +1,16 @@
+ale-py==0.8.1
+autorom==0.4.2
+chex==0.1.86
+envpool==0.8.4
+flax==0.7.4
+gym==0.23.1
+gymnasium==0.29.1
+jax==0.4.18
+jaxlib==0.4.18
+multi-agent-ale-py==0.1.11
+numpy==1.26.4
+optax==0.2.2
+pettingzoo==1.18.1
+scipy==1.12.0
+supersuit==3.4.0
+torch==2.4.1
